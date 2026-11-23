@@ -12,7 +12,7 @@ public class Seed {
     String password=env("DEMO_PASSWORD","demo123");
     String hash=new BCryptPasswordEncoder().encode(password);
     try(Connection c=DriverManager.getConnection(url,env("DB_USER","root"),env("DB_PASSWORD",""));
-        PreparedStatement p=c.prepareStatement("INSERT INTO sys_user(account,password_hash,display_name,role) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE display_name=VALUES(display_name),role=VALUES(role)")) {
+        PreparedStatement p=c.prepareStatement("INSERT INTO sys_user(account,password_hash,display_name,role) VALUES(?,?,?,?) ON DUPLICATE KEY UPDATE password_hash=VALUES(password_hash),display_name=VALUES(display_name),role=VALUES(role)")) {
       for(String[] row:new String[][]{{"admin","管理员","ADMIN"},{"owner","活动负责人","OWNER"},{"student1","学生甲","STUDENT"},{"student2","学生乙","STUDENT"}}) {
         p.setString(1,row[0]);p.setString(2,hash);p.setString(3,row[1]);p.setString(4,row[2]);p.executeUpdate();
       }
