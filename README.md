@@ -4,11 +4,10 @@
 
 ## 启动
 
-1. 在本目录运行 `uv sync`，初始化项目辅助环境。`uv` 管理 Python 工具环境，Java WAR 由 Maven 构建。
-2. 在 MySQL 8 中执行 [建表脚本](sql/schema.sql)。
-3. 设置 `DB_URL`、`DB_USER`、`DB_PASSWORD` 环境变量。默认 URL 指向本机 `campus_activity`。
-4. 运行 `mvn exec:java -Dexec.mainClass=edu.campus.Seed`，创建演示账号 `admin`、`owner`、`student1`、`student2`；默认密码为 `demo123`，可用 `DEMO_PASSWORD` 改写。
-5. 运行 `mvn package`，把 `target/activity-signin-1.0.0.war` 部署到 Tomcat 9，打开 `/activity-signin-1.0.0/`。
+1. 在 MySQL 8 中执行 [建表脚本](sql/schema.sql)。
+2. 设置 `DB_URL`、`DB_USER`、`DB_PASSWORD` 环境变量。默认 URL 指向本机 `campus_activity`。
+3. 运行 `mvn exec:java -Dexec.mainClass=edu.campus.Seed`，创建演示账号 `admin`、`owner`、`student1`、`student2`；默认密码为 `demo123`，可用 `DEMO_PASSWORD` 改写。
+4. 运行 `mvn package`，把 `target/activity-signin-1.0.0.war` 部署到 Tomcat 9，打开 `/activity-signin-1.0.0/`。
 
 演示顺序：负责人创建草稿并提交 → 管理员通过 → 学生报名 → 活动开始后负责人开启签到 → 学生输入现场签到码 → 负责人查看统计。活动时间需覆盖当前时间才能开启签到。
 
