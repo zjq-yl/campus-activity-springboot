@@ -81,8 +81,8 @@ public class Business {
   public static class BadCodeException extends RuntimeException { public BadCodeException() { super("签到码错误"); } }
   public Map<String,Object> stats(long id,long user) {
     Map<String,Object> a=required(id); owner(a,user);
-    List<Map<String,Object>> rows=db.roster(id); long active=rows.stream().filter(r->"ACTIVE".equals(r.get("status"))).count();
-    long signed=rows.stream().filter(r->"ACTIVE".equals(r.get("status")) && r.get("signed_at")!=null).count();
+    List<Map<String,Object>> rows=db.roster(id).stream().filter(r->"ACTIVE".equals(r.get("status"))).toList(); long active=rows.size();
+    long signed=rows.stream().filter(r->r.get("signed_at")!=null).count();
     return Map.of("registered",active,"signed",signed,"absent",active-signed,"rate",active==0?0.0:100.0*signed/active,"roster",rows);
   }
 }
