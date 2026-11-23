@@ -23,6 +23,7 @@ import org.springframework.web.servlet.view.InternalResourceViewResolver;
 public class Config implements WebMvcConfigurer {
   @Bean public DataSource dataSource() {
     HikariDataSource ds = new HikariDataSource();
+    ds.setDriverClassName("com.mysql.cj.jdbc.Driver");
     ds.setJdbcUrl(env("DB_URL", "jdbc:mysql://localhost:3306/campus_activity?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai"));
     ds.setUsername(env("DB_USER", "root")); ds.setPassword(env("DB_PASSWORD", ""));
     return ds;
