@@ -30,7 +30,7 @@ public class Config implements WebMvcConfigurer {
   private String env(String name, String fallback) { String v = System.getenv(name); return v == null ? fallback : v; }
   @Bean public SqlSessionFactory sqlSessionFactory(DataSource ds) throws Exception {
     SqlSessionFactoryBean bean = new SqlSessionFactoryBean(); bean.setDataSource(ds);
-    return bean.getObject();
+    bean.afterPropertiesSet(); return bean.getObject();
   }
   @Bean public DataSourceTransactionManager transactionManager(DataSource ds) { return new DataSourceTransactionManager(ds); }
   @Bean public InternalResourceViewResolver viewResolver() {
