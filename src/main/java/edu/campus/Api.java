@@ -3,6 +3,7 @@ package edu.campus;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -19,12 +20,15 @@ public class Api {
     if(role!=null && !role.equals(s.getAttribute("role"))) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"权限不足");
     return (Long)id;
   }
-  @PostMapping("/login") public Map<String,Object> login(@RequestParam String account,@RequestParam String password,HttpSession s) {
+  @PostMapping("/login") public Map<String,Object> login(@RequestParam String account,@RequestParam String password,HttpServletRequest request) {
     Map<String,Object> u=db.user(account);
     if(u==null || !bcrypt.matches(password,(String)u.get("password_hash"))) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"账号或密码错误");
-    s.invalidate();
-    // A new session avoids session fixation.
-    return Map.of("message","请刷新页面以建立新会话");
+    HttpSession old=request.getSession(false); if(old!=null) old.invalidate();
+    HttpSession s=request.getSession(true);
+    s.setAttribute("userId",((Number)u.get("id")).longValue());
+    s.setAttribute("role",u.get("role")); s.setAttribute("name",u.get("display_name"));
+    s.setAttribute("csrf",UUID.randomUUID().toString());
+    return Map.of("id",s.getAttribute("userId"),"role",s.getAttribute("role"),"name",s.getAttribute("name"),"csrf",s.getAttribute("csrf"));
   }
   @PostMapping("/logout") public void logout(HttpSession s) { s.invalidate(); }
   @GetMapping("/me") public Map<String,Object> me(HttpSession s) { auth(s,null); return Map.of("id",s.getAttribute("userId"),"role",s.getAttribute("role"),"name",s.getAttribute("name"),"csrf",s.getAttribute("csrf")); }
@@ -34,7 +38,7 @@ public class Api {
   @PostMapping("/owner/activities") public void create(HttpSession s,@RequestParam String title,@RequestParam String category,@RequestParam String location,@RequestParam(defaultValue="") String description,@RequestParam int capacity,@RequestParam String signupDeadline,@RequestParam String startAt,@RequestParam String endAt) {
     long id=auth(s,"OWNER");
     if(title.isBlank() || category.isBlank() || location.isBlank() || capacity<1 || signupDeadline.compareTo(startAt)>=0 || startAt.compareTo(endAt)>=0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"活动信息或时间无效");
-    db.create(id,title,category,location,description,capacity,signupDeadline,startAt,endAt);
+    db.create(id,title,category,location,description,capacity,signupDeadline.replace('T',' '),startAt.replace('T',' '),endAt.replace('T',' '));
   }
   @PostMapping("/owner/activities/{id}/submit") public void submit(@PathVariable long id,HttpSession s) { business.submit(id,auth(s,"OWNER")); }
   @PostMapping("/admin/activities/{id}/reviews") public void review(@PathVariable long id,HttpSession s,@RequestParam boolean approve,@RequestParam(defaultValue="") String remark) { business.review(id,auth(s,"ADMIN"),approve,remark); }
