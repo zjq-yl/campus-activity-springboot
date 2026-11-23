@@ -85,4 +85,8 @@ public class Business {
     long signed=rows.stream().filter(r->r.get("signed_at")!=null).count();
     return Map.of("registered",active,"signed",signed,"absent",active-signed,"rate",active==0?0.0:100.0*signed/active,"roster",rows);
   }
+  public List<Map<String,Object>> reviews(long id,long user) {
+    Map<String,Object> a=required(id); owner(a,user);
+    return db.reviews(id);
+  }
 }

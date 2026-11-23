@@ -19,6 +19,7 @@ public interface Store {
   void edit(@Param("id") long id,@Param("title") String title,@Param("category") String category,@Param("location") String location,@Param("description") String description,@Param("capacity") int capacity,@Param("deadline") String deadline,@Param("start") String start,@Param("end") String end);
   @Update("UPDATE activity SET status=#{status} WHERE id=#{id}") void status(@Param("id") long id,@Param("status") String status);
   @Insert("INSERT INTO activity_review(activity_id,reviewer_id,result,remark,reviewed_at) VALUES(#{id},#{reviewer},#{result},#{remark},NOW())") void review(@Param("id") long id,@Param("reviewer") long reviewer,@Param("result") String result,@Param("remark") String remark);
+  @Select("SELECT r.result,r.remark,r.reviewed_at,u.display_name AS reviewer FROM activity_review r JOIN sys_user u ON u.id=r.reviewer_id WHERE r.activity_id=#{id} ORDER BY r.reviewed_at DESC,r.id DESC") List<Map<String,Object>> reviews(long id);
   @Select("SELECT * FROM registration WHERE activity_id=#{id} AND student_id=#{student}") Map<String,Object> registration(@Param("id") long id,@Param("student") long student);
   @Insert("INSERT INTO registration(activity_id,student_id,status,registered_at) VALUES(#{id},#{student},'ACTIVE',NOW())") void register(@Param("id") long id,@Param("student") long student);
   @Update("UPDATE registration SET status='ACTIVE',registered_at=NOW(),cancelled_at=NULL,failed_checkins=0 WHERE id=#{id}") void reactivate(long id);

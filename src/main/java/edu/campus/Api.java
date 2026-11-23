@@ -53,4 +53,5 @@ public class Api {
   @PostMapping("/owner/activities/{id}/checkin/close") public void close(@PathVariable long id,HttpSession s) { business.close(id,auth(s,"OWNER")); }
   @PostMapping("/activities/{id}/checkin") public void checkin(@PathVariable long id,HttpSession s,@RequestParam String code) { business.checkin(id,auth(s,"STUDENT"),code); }
   @GetMapping("/owner/activities/{id}/attendance") public Map<String,Object> attendance(@PathVariable long id,HttpSession s) { return business.stats(id,auth(s,"OWNER")); }
+  @GetMapping("/owner/activities/{id}/reviews") public List<Map<String,Object>> reviews(@PathVariable long id,HttpSession s) { return business.reviews(id,auth(s,"OWNER")); }
 }
