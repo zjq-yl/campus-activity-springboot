@@ -17,4 +17,6 @@
 
 本机若没有 JDK 17、Maven、MySQL 8 和 Tomcat 9，需先安装这些运行依赖。
 
+在 Windows PowerShell 中查看本项目的 Tomcat 日志时，运行 `powershell -File scripts/view-logs.ps1`。日志文件使用 UTF-8；直接用未指定编码的 `Get-Content` 读取会显示乱码。查看应用错误可传入 `-Name localhost`。
+
 项目的普通 Git 仓库位于本目录。运行 `git log --oneline` 可查看每一步的本地提交。
