@@ -17,3 +17,5 @@
 报名和取消在数据库事务中锁定活动行，容量不会超额。签到码只存 BCrypt 哈希，错误次数累计到五次后拒绝继续签到。所有写接口需要登录后的 `X-CSRF-Token`；页面自动发送。
 
 本机若没有 JDK 17、Maven、MySQL 8 和 Tomcat 9，需先安装这些运行依赖。
+
+当前工作区原有的 `.git` 被环境设为只读，阶段提交保存在可写的 `.history/.git`。查看提交使用 `git --git-dir=.history/.git --work-tree=. log --oneline`。
