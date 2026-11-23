@@ -10,9 +10,12 @@ public interface Store {
   @Select("SELECT * FROM activity WHERE id=#{id} FOR UPDATE") Map<String,Object> lockActivity(long id);
   @Select("SELECT * FROM activity WHERE status='PUBLISHED' AND (#{q}='' OR title LIKE CONCAT('%',#{q},'%')) ORDER BY start_at LIMIT #{limit} OFFSET #{offset}") List<Map<String,Object>> activities(@Param("q") String q,@Param("limit") int limit,@Param("offset") int offset);
   @Select("SELECT * FROM activity WHERE owner_id=#{owner} ORDER BY id DESC") List<Map<String,Object>> owned(long owner);
+  @Select("SELECT a.*,r.status AS registration_status,t.signed_at FROM registration r JOIN activity a ON a.id=r.activity_id LEFT JOIN attendance t ON t.registration_id=r.id WHERE r.student_id=#{student} ORDER BY a.start_at DESC") List<Map<String,Object>> mine(long student);
   @Select("SELECT * FROM activity WHERE status='PENDING' ORDER BY id") List<Map<String,Object>> pending();
   @Insert("INSERT INTO activity(owner_id,title,category,location,description,capacity,signup_deadline,start_at,end_at) VALUES(#{owner},#{title},#{category},#{location},#{description},#{capacity},#{deadline},#{start},#{end})")
   void create(@Param("owner") long owner,@Param("title") String title,@Param("category") String category,@Param("location") String location,@Param("description") String description,@Param("capacity") int capacity,@Param("deadline") String deadline,@Param("start") String start,@Param("end") String end);
+  @Update("UPDATE activity SET title=#{title},category=#{category},location=#{location},description=#{description},capacity=#{capacity},signup_deadline=#{deadline},start_at=#{start},end_at=#{end} WHERE id=#{id}")
+  void edit(@Param("id") long id,@Param("title") String title,@Param("category") String category,@Param("location") String location,@Param("description") String description,@Param("capacity") int capacity,@Param("deadline") String deadline,@Param("start") String start,@Param("end") String end);
   @Update("UPDATE activity SET status=#{status} WHERE id=#{id}") void status(@Param("id") long id,@Param("status") String status);
   @Insert("INSERT INTO activity_review(activity_id,reviewer_id,result,remark,reviewed_at) VALUES(#{id},#{reviewer},#{result},#{remark},NOW())") void review(@Param("id") long id,@Param("reviewer") long reviewer,@Param("result") String result,@Param("remark") String remark);
   @Select("SELECT * FROM registration WHERE activity_id=#{id} AND student_id=#{student}") Map<String,Object> registration(@Param("id") long id,@Param("student") long student);

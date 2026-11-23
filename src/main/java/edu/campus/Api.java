@@ -34,6 +34,7 @@ public class Api {
   @GetMapping("/me") public Map<String,Object> me(HttpSession s) { auth(s,null); return Map.of("id",s.getAttribute("userId"),"role",s.getAttribute("role"),"name",s.getAttribute("name"),"csrf",s.getAttribute("csrf")); }
   @GetMapping("/activities") public List<Map<String,Object>> activities(@RequestParam(defaultValue="") String q,@RequestParam(defaultValue="1") int page) { return db.activities(q,20,Math.max(0,page-1)*20); }
   @GetMapping("/owner/activities") public List<Map<String,Object>> owned(HttpSession s) { return db.owned(auth(s,"OWNER")); }
+  @GetMapping("/my/activities") public List<Map<String,Object>> mine(HttpSession s) { return db.mine(auth(s,"STUDENT")); }
   @GetMapping("/admin/activities") public List<Map<String,Object>> pending(HttpSession s) { auth(s,"ADMIN"); return db.pending(); }
   @PostMapping("/owner/activities") public void create(HttpSession s,@RequestParam String title,@RequestParam String category,@RequestParam String location,@RequestParam(defaultValue="") String description,@RequestParam int capacity,@RequestParam String signupDeadline,@RequestParam String startAt,@RequestParam String endAt) {
     long id=auth(s,"OWNER");
@@ -41,6 +42,9 @@ public class Api {
     db.create(id,title,category,location,description,capacity,signupDeadline.replace('T',' '),startAt.replace('T',' '),endAt.replace('T',' '));
   }
   @PostMapping("/owner/activities/{id}/submit") public void submit(@PathVariable long id,HttpSession s) { business.submit(id,auth(s,"OWNER")); }
+  @PostMapping("/owner/activities/{id}/edit") public void edit(@PathVariable long id,HttpSession s,@RequestParam String title,@RequestParam String category,@RequestParam String location,@RequestParam(defaultValue="") String description,@RequestParam int capacity,@RequestParam String signupDeadline,@RequestParam String startAt,@RequestParam String endAt) {
+    business.edit(id,auth(s,"OWNER"),title,category,location,description,capacity,signupDeadline,startAt,endAt);
+  }
   @PostMapping("/admin/activities/{id}/reviews") public void review(@PathVariable long id,HttpSession s,@RequestParam boolean approve,@RequestParam(defaultValue="") String remark) { business.review(id,auth(s,"ADMIN"),approve,remark); }
   @PostMapping("/activities/{id}/register") public void register(@PathVariable long id,HttpSession s) { business.register(id,auth(s,"STUDENT")); }
   @PostMapping("/activities/{id}/cancel-registration") public void cancel(@PathVariable long id,HttpSession s) { business.cancel(id,auth(s,"STUDENT")); }

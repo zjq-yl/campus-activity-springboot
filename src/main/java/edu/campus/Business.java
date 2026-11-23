@@ -22,6 +22,12 @@ public class Business {
   private long number(Object value) { return ((Number)value).longValue(); }
   private Map<String,Object> required(long id) { Map<String,Object> a=db.activity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND); return a; }
   private void owner(Map<String,Object> a,long user) { if(number(a.get("owner_id"))!=user) throw new ResponseStatusException(HttpStatus.FORBIDDEN); }
+  @Transactional public void edit(long id,long user,String title,String category,String location,String description,int capacity,String deadline,String start,String end) {
+    Map<String,Object> a=db.lockActivity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND); owner(a,user);
+    if(!List.of("DRAFT","REJECTED").contains(a.get("status"))) throw bad("当前状态不能编辑");
+    if(title.isBlank() || category.isBlank() || location.isBlank() || capacity<1 || deadline.compareTo(start)>=0 || start.compareTo(end)>=0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"活动信息或时间无效");
+    db.edit(id,title,category,location,description,capacity,deadline.replace('T',' '),start.replace('T',' '),end.replace('T',' '));
+  }
   @Transactional public void submit(long id,long user) {
     Map<String,Object> a=db.lockActivity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND); owner(a,user);
     if(!List.of("DRAFT","REJECTED").contains(a.get("status"))) throw bad("当前状态不能提交审核");
