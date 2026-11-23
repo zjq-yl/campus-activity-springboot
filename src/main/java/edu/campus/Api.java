@@ -32,7 +32,8 @@ public class Api {
   }
   @PostMapping("/logout") public void logout(HttpSession s) { s.invalidate(); }
   @GetMapping("/me") public Map<String,Object> me(HttpSession s) { auth(s,null); return Map.of("id",s.getAttribute("userId"),"role",s.getAttribute("role"),"name",s.getAttribute("name"),"csrf",s.getAttribute("csrf")); }
-  @GetMapping("/activities") public List<Map<String,Object>> activities(@RequestParam(defaultValue="") String q,@RequestParam(defaultValue="1") int page) { return db.activities(q,20,Math.max(0,page-1)*20); }
+  @GetMapping("/activities") public List<Map<String,Object>> activities(@RequestParam(defaultValue="") String q,@RequestParam(defaultValue="") String category,@RequestParam(defaultValue="1") int page) { return db.activities(q,category,20,Math.min(10000,Math.max(0,page-1))*20); }
+  @GetMapping("/activities/categories") public List<String> categories() { return db.categories(); }
   @GetMapping("/owner/activities") public List<Map<String,Object>> owned(HttpSession s) { return db.owned(auth(s,"OWNER")); }
   @GetMapping("/my/activities") public List<Map<String,Object>> mine(HttpSession s) { return db.mine(auth(s,"STUDENT")); }
   @GetMapping("/admin/activities") public List<Map<String,Object>> pending(HttpSession s) { auth(s,"ADMIN"); return db.pending(); }

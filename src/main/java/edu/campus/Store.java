@@ -8,7 +8,8 @@ public interface Store {
   @Select("SELECT * FROM sys_user WHERE account=#{account}") Map<String,Object> user(String account);
   @Select("SELECT * FROM activity WHERE id=#{id}") Map<String,Object> activity(long id);
   @Select("SELECT * FROM activity WHERE id=#{id} FOR UPDATE") Map<String,Object> lockActivity(long id);
-  @Select("SELECT * FROM activity WHERE status='PUBLISHED' AND (#{q}='' OR title LIKE CONCAT('%',#{q},'%')) ORDER BY start_at LIMIT #{limit} OFFSET #{offset}") List<Map<String,Object>> activities(@Param("q") String q,@Param("limit") int limit,@Param("offset") int offset);
+  @Select("SELECT * FROM activity WHERE status='PUBLISHED' AND (#{q}='' OR title LIKE CONCAT('%',#{q},'%')) AND (#{category}='' OR category=#{category}) ORDER BY start_at,id LIMIT #{limit} OFFSET #{offset}") List<Map<String,Object>> activities(@Param("q") String q,@Param("category") String category,@Param("limit") int limit,@Param("offset") int offset);
+  @Select("SELECT DISTINCT category FROM activity WHERE status='PUBLISHED' ORDER BY category") List<String> categories();
   @Select("SELECT * FROM activity WHERE owner_id=#{owner} ORDER BY id DESC") List<Map<String,Object>> owned(long owner);
   @Select("SELECT a.*,r.status AS registration_status,t.signed_at FROM registration r JOIN activity a ON a.id=r.activity_id LEFT JOIN attendance t ON t.registration_id=r.id WHERE r.student_id=#{student} ORDER BY a.start_at DESC") List<Map<String,Object>> mine(long student);
   @Select("SELECT * FROM activity WHERE status='PENDING' ORDER BY id") List<Map<String,Object>> pending();
