@@ -18,4 +18,4 @@
 
 本机若没有 JDK 17、Maven、MySQL 8 和 Tomcat 9，需先安装这些运行依赖。
 
-当前工作区原有的 `.git` 被环境设为只读，阶段提交保存在可写的 `.history/.git`。查看提交使用 `git --git-dir=.history/.git --work-tree=. log --oneline`。
+项目的普通 Git 仓库位于本目录。运行 `git log --oneline` 可查看每一步的本地提交。
