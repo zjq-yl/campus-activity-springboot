@@ -59,17 +59,20 @@ public class Business {
   @Transactional public void close(long id,long user) {
     Map<String,Object> a=db.lockActivity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND); owner(a,user); db.close(id);
   }
-  @Transactional public void checkin(long id,long student,String code) {
+  @Transactional(noRollbackFor=BadCodeException.class) public void checkin(long id,long student,String code) {
     Map<String,Object> a=db.lockActivity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    if(!"PUBLISHED".equals(a.get("status")) || LocalDateTime.now().isBefore(time(a.get("start_at")))) throw bad("活动尚未开始");
     Map<String,Object> r=db.registration(id,student);
     if(r==null || !"ACTIVE".equals(r.get("status"))) throw bad("没有有效报名");
     long rid=number(r.get("id")); if(db.attendance(rid)!=null) return;
     Map<String,Object> s=db.session(id); LocalDateTime now=LocalDateTime.now();
     if(s==null || s.get("closed_at")!=null || now.isBefore(time(s.get("opened_at"))) || !now.isBefore(time(s.get("closes_at"))) || !now.isBefore(time(a.get("end_at")))) throw bad("签到已关闭");
     if(number(r.get("failed_checkins"))>=5) throw bad("错误次数已达上限，请联系负责人");
-    if(code==null || !bcrypt.matches(code,(String)s.get("code_hash"))) { db.failed(rid); return; }
+    if(code==null || !code.matches("[0-9]{6}") || !bcrypt.matches(code,(String)s.get("code_hash"))) { db.failed(rid); throw new BadCodeException(); }
     db.sign(rid);
   }
+  @org.springframework.web.bind.annotation.ResponseStatus(HttpStatus.CONFLICT)
+  public static class BadCodeException extends RuntimeException { public BadCodeException() { super("签到码错误"); } }
   public Map<String,Object> stats(long id,long user) {
     Map<String,Object> a=required(id); owner(a,user);
     List<Map<String,Object>> rows=db.roster(id); long active=rows.stream().filter(r->"ACTIVE".equals(r.get("status"))).count();
