@@ -34,12 +34,14 @@ public class Api {
   @GetMapping("/me") public Map<String,Object> me(HttpSession s) { auth(s,null); return Map.of("id",s.getAttribute("userId"),"role",s.getAttribute("role"),"name",s.getAttribute("name"),"csrf",s.getAttribute("csrf")); }
   @GetMapping("/activities") public List<Map<String,Object>> activities(@RequestParam(defaultValue="") String q,@RequestParam(defaultValue="") String category,@RequestParam(defaultValue="1") int page) { return db.activities(q,category,20,Math.min(10000,Math.max(0,page-1))*20); }
   @GetMapping("/activities/categories") public List<String> categories() { return db.categories(); }
+  @GetMapping("/activities/{id}") public Map<String,Object> activity(@PathVariable long id) { Map<String,Object> a=db.publishedActivity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND); return a; }
   @GetMapping("/owner/activities") public List<Map<String,Object>> owned(HttpSession s) { return db.owned(auth(s,"OWNER")); }
   @GetMapping("/my/activities") public List<Map<String,Object>> mine(HttpSession s) { return db.mine(auth(s,"STUDENT")); }
   @GetMapping("/my/profile") public Map<String,Object> profile(HttpSession s) { return db.profile(auth(s,"STUDENT")); }
   @GetMapping("/my/points") public Map<String,Object> points(HttpSession s) { return business.points(auth(s,"STUDENT")); }
   @GetMapping("/points/categories") public List<String> pointCategories() { return Business.POINT_CATEGORIES; }
   @GetMapping("/admin/activities") public List<Map<String,Object>> pending(HttpSession s) { auth(s,"ADMIN"); return db.pending(); }
+  @GetMapping("/admin/reviews") public List<Map<String,Object>> allReviews(HttpSession s) { auth(s,"ADMIN"); return db.allReviews(); }
   @PostMapping("/owner/activities") public void create(HttpSession s,@RequestParam String title,@RequestParam String category,@RequestParam(defaultValue="思想成长") String pointCategory,@RequestParam(defaultValue="1") int points,@RequestParam(defaultValue="true") boolean checkinRequired,@RequestParam String location,@RequestParam(defaultValue="") String description,@RequestParam int capacity,@RequestParam String signupDeadline,@RequestParam String startAt,@RequestParam String endAt) {
     long id=auth(s,"OWNER");
     if(title.isBlank() || category.isBlank() || location.isBlank() || capacity<1 || signupDeadline.compareTo(startAt)>=0 || startAt.compareTo(endAt)>=0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"活动信息或时间无效");
