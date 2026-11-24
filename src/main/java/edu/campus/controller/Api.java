@@ -5,36 +5,45 @@ import edu.campus.service.Business;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class Api {
-  private final Store db; private final Business business;
-  private final BCryptPasswordEncoder bcrypt=new BCryptPasswordEncoder();
-  public Api(Store db,Business business) { this.db=db; this.business=business; }
+  private final Store db; private final Business business; private final AuthenticationManager authenticationManager;
+  public Api(Store db,Business business,AuthenticationManager authenticationManager) { this.db=db; this.business=business; this.authenticationManager=authenticationManager; }
   private long auth(HttpSession s,String role) {
     Object id=s.getAttribute("userId"); if(id==null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"请先登录");
     if(role!=null && !role.equals(s.getAttribute("role"))) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"权限不足");
     return (Long)id;
   }
   @PostMapping("/login") public Map<String,Object> login(@RequestParam String account,@RequestParam String password,HttpServletRequest request) {
+    Authentication authentication;
+    try { authentication=authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(account,password)); }
+    catch(AuthenticationException error) { throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"账号或密码错误"); }
     Map<String,Object> u=db.user(account);
-    if(u==null || !bcrypt.matches(password,(String)u.get("password_hash"))) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"账号或密码错误");
     HttpSession old=request.getSession(false); if(old!=null) old.invalidate();
     HttpSession s=request.getSession(true);
     s.setAttribute("userId",((Number)u.get("id")).longValue());
     s.setAttribute("role",u.get("role")); s.setAttribute("name",u.get("display_name"));
-    s.setAttribute("csrf",UUID.randomUUID().toString());
-    return Map.of("id",s.getAttribute("userId"),"role",s.getAttribute("role"),"name",s.getAttribute("name"),"csrf",s.getAttribute("csrf"));
+    SecurityContext context=SecurityContextHolder.createEmptyContext();
+    context.setAuthentication(authentication);
+    SecurityContextHolder.setContext(context);
+    s.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,context);
+    return Map.of("id",s.getAttribute("userId"),"role",s.getAttribute("role"),"name",s.getAttribute("name"));
   }
-  @PostMapping("/logout") public void logout(HttpSession s) { s.invalidate(); }
-  @GetMapping("/me") public Map<String,Object> me(HttpSession s) { auth(s,null); return Map.of("id",s.getAttribute("userId"),"role",s.getAttribute("role"),"name",s.getAttribute("name"),"csrf",s.getAttribute("csrf")); }
+  @GetMapping("/me") public Map<String,Object> me(HttpSession s,HttpServletRequest request) { auth(s,null); CsrfToken token=(CsrfToken)request.getAttribute(CsrfToken.class.getName()); return Map.of("id",s.getAttribute("userId"),"role",s.getAttribute("role"),"name",s.getAttribute("name"),"csrf",token.getToken()); }
   @GetMapping("/activities") public List<Map<String,Object>> activities(@RequestParam(defaultValue="") String q,@RequestParam(defaultValue="") String category,@RequestParam(defaultValue="1") int page) { return db.activities(q,category,20,Math.min(10000,Math.max(0,page-1))*20); }
   @GetMapping("/activities/categories") public List<String> categories() { return db.categories(); }
   @GetMapping("/activities/{id}") public Map<String,Object> activity(@PathVariable long id) { Map<String,Object> a=db.publishedActivity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND); return a; }

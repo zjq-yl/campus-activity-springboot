@@ -1,6 +1,6 @@
 # 校园活动报名与签到系统
 
-基于 Spring Boot、Spring MVC、MyBatis、Thymeleaf 和 MySQL 的校园活动系统。使用 JDK 17，Spring Boot 内置 Web 服务器。
+基于 Spring Boot、Spring MVC、Spring Security、MyBatis、Thymeleaf 和 MySQL 的校园活动系统。使用 JDK 17，Spring Boot 内置 Web 服务器。
 
 ## 启动
 
@@ -16,7 +16,7 @@
 
 ## 说明
 
-报名和取消在数据库事务中锁定活动行，容量不会超额。签到码只存 BCrypt 哈希，错误次数累计到五次后拒绝继续签到。所有写接口需要登录后的 `X-CSRF-Token`；页面自动发送。
+报名和取消在数据库事务中锁定活动行，容量不会超额。签到码只存 BCrypt 哈希，错误次数累计到五次后拒绝继续签到。Spring Security 负责登录校验、角色权限和 CSRF 防护；页面从 `/me` 取得令牌后自动发送。
 
 每个活动设置积分分类、分值和签到方式。需要签到的活动在学生成功签到后计分；免签到活动在结束后为有效报名学生自动计分。学生端显示七类积分和总分。
 
