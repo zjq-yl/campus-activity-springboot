@@ -1,4 +1,4 @@
-package edu.campus;
+package edu.campus.seed;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

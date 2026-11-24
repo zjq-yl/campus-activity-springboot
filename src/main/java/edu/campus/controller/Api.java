@@ -1,4 +1,7 @@
-package edu.campus;
+package edu.campus.controller;
+
+import edu.campus.mapper.Store;
+import edu.campus.service.Business;
 
 import java.util.List;
 import java.util.Map;
@@ -14,7 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class Api {
   private final Store db; private final Business business;
   private final BCryptPasswordEncoder bcrypt=new BCryptPasswordEncoder();
-  Api(Store db,Business business) { this.db=db; this.business=business; }
+  public Api(Store db,Business business) { this.db=db; this.business=business; }
   private long auth(HttpSession s,String role) {
     Object id=s.getAttribute("userId"); if(id==null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"请先登录");
     if(role!=null && !role.equals(s.getAttribute("role"))) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"权限不足");

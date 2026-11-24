@@ -1,4 +1,6 @@
-package edu.campus;
+package edu.campus.controller;
+
+import edu.campus.service.Business;
 
 import java.util.Map;
 import org.springframework.http.ResponseEntity;

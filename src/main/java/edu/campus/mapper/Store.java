@@ -1,4 +1,4 @@
-package edu.campus;
+package edu.campus.mapper;
 
 import java.util.List;
 import java.util.Map;

@@ -1,4 +1,7 @@
-package edu.campus;
+package edu.campus.service;
+
+import edu.campus.mapper.Store;
+import edu.campus.entity.PointCategory;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -17,8 +20,8 @@ public class Business {
   private final Store db;
   private final BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
   private final SecureRandom random = new SecureRandom();
-  public static final List<String> POINT_CATEGORIES=List.of("思想成长","实践实习","志愿公益","创新创业","文体活动","社会工作","技能特长");
-  Business(Store db) { this.db = db; }
+  public static final List<String> POINT_CATEGORIES=java.util.Arrays.stream(PointCategory.values()).map(PointCategory::label).toList();
+  public Business(Store db) { this.db = db; }
   private ResponseStatusException bad(String message) { return new ResponseStatusException(HttpStatus.CONFLICT, message); }
   private LocalDateTime time(Object value) { return value instanceof LocalDateTime t ? t : ((Timestamp)value).toLocalDateTime(); }
   private long number(Object value) { return ((Number)value).longValue(); }

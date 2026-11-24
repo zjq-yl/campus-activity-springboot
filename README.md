@@ -7,7 +7,7 @@
 1. 在 MySQL 8 中执行 [建表脚本](sql/schema.sql)。
    已使用旧版建表脚本的数据库只执行一次 [积分字段迁移](sql/migrations/001_points.sql)，不要重新执行建表脚本。
 2. 设置 `DB_URL`、`DB_USER`、`DB_PASSWORD` 环境变量。默认 URL 指向本机 `campus_activity`。
-3. 运行 `mvn exec:java -Dexec.mainClass=edu.campus.Seed`，创建演示账号 `admin`、`owner`、`student1`、`student2`、`student3` 和示例活动；默认密码为 `demo123`，可用 `DEMO_PASSWORD` 改写。重复运行不会重复创建示例活动。
+3. 运行 `mvn exec:java -Dexec.mainClass=edu.campus.seed.Seed`，创建演示账号 `admin`、`owner`、`student1`、`student2`、`student3` 和示例活动；默认密码为 `demo123`，可用 `DEMO_PASSWORD` 改写。重复运行不会重复创建示例活动。
 4. 运行 `mvn package`，再运行 `java -jar target/activity-signin-1.0.0.jar`，打开 `http://localhost:8080/`。
 
 演示顺序：负责人创建草稿并提交 → 管理员通过 → 学生报名 → 活动开始后负责人开启签到 → 学生输入现场签到码 → 负责人查看统计。活动时间需覆盖当前时间才能开启签到。
@@ -21,5 +21,16 @@
 每个活动设置积分分类、分值和签到方式。需要签到的活动在学生成功签到后计分；免签到活动在结束后为有效报名学生自动计分。学生端显示七类积分和总分。
 
 本机需要 JDK 17、Maven 和 MySQL 8。无需单独安装 Tomcat。
+
+## 项目结构
+
+- `controller`：页面路由、JSON 接口和错误响应。
+- `service`：审核、报名、签到、积分与事务规则。
+- `mapper`：MyBatis SQL 和数据库访问。
+- `entity`：积分等业务类型。
+- `config`：Web 拦截配置。
+- `seed`：可重复执行的演示数据初始化。
+- `src/main/resources/templates`：Thymeleaf 页面；`static`：共享样式与前端脚本。
+- `sql`：新装建表脚本和旧库迁移脚本。
 
 项目的普通 Git 仓库位于本目录。运行 `git log --oneline` 可查看每一步的本地提交。
