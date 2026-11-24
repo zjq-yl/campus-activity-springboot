@@ -16,6 +16,11 @@ public class Seed {
       for(String[] row:new String[][]{{"admin","管理员","ADMIN"},{"owner","活动负责人","OWNER"},{"student1","学生甲","STUDENT"},{"student2","学生乙","STUDENT"},{"student3","学生丙","STUDENT"}}) {
         p.setString(1,row[0]);p.setString(2,hash);p.setString(3,row[1]);p.setString(4,row[2]);p.executeUpdate();
       }
+      try(PreparedStatement profile=c.prepareStatement("UPDATE sys_user SET student_no=?,college=?,major=?,class_name=? WHERE account=?")) {
+        for(int i=1;i<=3;i++) {
+          profile.setString(1,"2026000"+i);profile.setString(2,"计算机学院");profile.setString(3,"软件工程");profile.setString(4,"软件工程 1 班");profile.setString(5,"student"+i);profile.executeUpdate();
+        }
+      }
       for(String[] row:new String[][]{{"校园技术分享会","讲座","教学楼 A101","PUBLISHED"},{"周末志愿服务","志愿服务","校园服务中心","PENDING"}}) {
         try(PreparedStatement activity=c.prepareStatement("INSERT INTO activity(owner_id,title,category,location,description,capacity,status,signup_deadline,start_at,end_at) SELECT id,?,?,?,?,2,?,DATE_ADD(NOW(),INTERVAL 1 DAY),DATE_ADD(NOW(),INTERVAL 2 DAY),DATE_ADD(DATE_ADD(NOW(),INTERVAL 2 DAY),INTERVAL 2 HOUR) FROM sys_user WHERE account='owner' AND NOT EXISTS (SELECT 1 FROM activity WHERE title=? AND owner_id=sys_user.id)")) {
           activity.setString(1,row[0]);activity.setString(2,row[1]);activity.setString(3,row[2]);activity.setString(4,"课程演示活动");activity.setString(5,row[3]);activity.setString(6,row[0]);activity.executeUpdate();

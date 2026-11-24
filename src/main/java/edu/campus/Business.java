@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.LinkedHashMap;
 import java.security.SecureRandom;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,17 +17,22 @@ public class Business {
   private final Store db;
   private final BCryptPasswordEncoder bcrypt = new BCryptPasswordEncoder();
   private final SecureRandom random = new SecureRandom();
+  public static final List<String> POINT_CATEGORIES=List.of("思想成长","实践实习","志愿公益","创新创业","文体活动","社会工作","技能特长");
   Business(Store db) { this.db = db; }
   private ResponseStatusException bad(String message) { return new ResponseStatusException(HttpStatus.CONFLICT, message); }
   private LocalDateTime time(Object value) { return value instanceof LocalDateTime t ? t : ((Timestamp)value).toLocalDateTime(); }
   private long number(Object value) { return ((Number)value).longValue(); }
   private Map<String,Object> required(long id) { Map<String,Object> a=db.activity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND); return a; }
   private void owner(Map<String,Object> a,long user) { if(number(a.get("owner_id"))!=user) throw new ResponseStatusException(HttpStatus.FORBIDDEN); }
-  @Transactional public void edit(long id,long user,String title,String category,String location,String description,int capacity,String deadline,String start,String end) {
+  public void validatePoints(String category,int points) {
+    if(!POINT_CATEGORIES.contains(category) || points<0 || points>1000) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"积分分类或分值无效");
+  }
+  @Transactional public void edit(long id,long user,String title,String category,String pointCategory,int points,boolean checkinRequired,String location,String description,int capacity,String deadline,String start,String end) {
     Map<String,Object> a=db.lockActivity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND); owner(a,user);
     if(!List.of("DRAFT","REJECTED").contains(a.get("status"))) throw bad("当前状态不能编辑");
     if(title.isBlank() || category.isBlank() || location.isBlank() || capacity<1 || deadline.compareTo(start)>=0 || start.compareTo(end)>=0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"活动信息或时间无效");
-    db.edit(id,title,category,location,description,capacity,deadline.replace('T',' '),start.replace('T',' '),end.replace('T',' '));
+    validatePoints(pointCategory,points);
+    db.edit(id,title,category,pointCategory,points,checkinRequired,location,description,capacity,deadline.replace('T',' '),start.replace('T',' '),end.replace('T',' '));
   }
   @Transactional public void submit(long id,long user) {
     Map<String,Object> a=db.lockActivity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND); owner(a,user);
@@ -59,6 +65,7 @@ public class Business {
     Map<String,Object> a=db.lockActivity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND); owner(a,user);
     LocalDateTime now=LocalDateTime.now();
     if(!"PUBLISHED".equals(a.get("status")) || now.isBefore(time(a.get("start_at"))) || !now.isBefore(time(a.get("end_at")))) throw bad("活动不在签到时间内");
+    if(!Boolean.TRUE.equals(a.get("checkin_required")) && !Integer.valueOf(1).equals(a.get("checkin_required"))) throw bad("此活动无需签到");
     if(db.session(id)!=null) throw bad("签到场次已存在");
     String code=String.format("%06d",random.nextInt(1_000_000)); db.open(id,bcrypt.encode(code)); return code;
   }
@@ -68,6 +75,7 @@ public class Business {
   @Transactional(noRollbackFor=BadCodeException.class) public void checkin(long id,long student,String code) {
     Map<String,Object> a=db.lockActivity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
     if(!"PUBLISHED".equals(a.get("status")) || LocalDateTime.now().isBefore(time(a.get("start_at")))) throw bad("活动尚未开始");
+    if(!Boolean.TRUE.equals(a.get("checkin_required")) && !Integer.valueOf(1).equals(a.get("checkin_required"))) throw bad("此活动无需签到");
     Map<String,Object> r=db.registration(id,student);
     if(r==null || !"ACTIVE".equals(r.get("status"))) throw bad("没有有效报名");
     long rid=number(r.get("id")); if(db.attendance(rid)!=null) return;
@@ -82,11 +90,18 @@ public class Business {
   public Map<String,Object> stats(long id,long user) {
     Map<String,Object> a=required(id); owner(a,user);
     List<Map<String,Object>> rows=db.roster(id).stream().filter(r->"ACTIVE".equals(r.get("status"))).toList(); long active=rows.size();
-    long signed=rows.stream().filter(r->r.get("signed_at")!=null).count();
+    boolean automatic=(!Boolean.TRUE.equals(a.get("checkin_required")) && !Integer.valueOf(1).equals(a.get("checkin_required"))) && !LocalDateTime.now().isBefore(time(a.get("end_at")));
+    long signed=automatic?active:rows.stream().filter(r->r.get("signed_at")!=null).count();
     return Map.of("registered",active,"signed",signed,"absent",active-signed,"rate",active==0?0.0:100.0*signed/active,"roster",rows);
   }
   public List<Map<String,Object>> reviews(long id,long user) {
     Map<String,Object> a=required(id); owner(a,user);
     return db.reviews(id);
+  }
+  public Map<String,Object> points(long student) {
+    Map<String,Integer> categories=new LinkedHashMap<>();
+    POINT_CATEGORIES.forEach(c->categories.put(c,0));
+    for(Map<String,Object> row:db.points(student)) categories.put((String)row.get("category"),((Number)row.get("points")).intValue());
+    return Map.of("categories",categories,"total",categories.values().stream().mapToInt(Integer::intValue).sum());
   }
 }
