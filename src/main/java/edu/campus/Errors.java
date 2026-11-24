@@ -10,7 +10,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class Errors {
   @ExceptionHandler(ResponseStatusException.class)
   public ResponseEntity<Map<String,String>> business(ResponseStatusException error) {
-    return ResponseEntity.status(error.getStatus()).body(Map.of("error",error.getReason()==null?"请求失败":error.getReason()));
+    return ResponseEntity.status(error.getStatusCode()).body(Map.of("error",error.getReason()==null?"请求失败":error.getReason()));
   }
   @ExceptionHandler(Business.BadCodeException.class)
   public ResponseEntity<Map<String,String>> code(Business.BadCodeException error) {
