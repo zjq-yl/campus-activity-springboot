@@ -19,4 +19,6 @@
 
 在 Windows PowerShell 中查看本项目的 Tomcat 日志时，运行 `powershell -File scripts/view-logs.ps1`。日志文件使用 UTF-8；直接用未指定编码的 `Get-Content` 读取会显示乱码。查看应用错误可传入 `-Name localhost`。
 
+如果 Windows 控制台中的 Tomcat 启动日志乱码，先运行 `powershell -File scripts/fix-tomcat-console.ps1`，再重启 Tomcat。此脚本仅把控制台日志设为 GBK，文件日志继续使用 UTF-8。
+
 项目的普通 Git 仓库位于本目录。运行 `git log --oneline` 可查看每一步的本地提交。
