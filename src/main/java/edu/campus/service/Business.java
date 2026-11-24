@@ -92,10 +92,11 @@ public class Business {
   public static class BadCodeException extends RuntimeException { public BadCodeException() { super("签到码错误"); } }
   public Map<String,Object> stats(long id,long user) {
     Map<String,Object> a=required(id); owner(a,user);
-    List<Map<String,Object>> rows=db.roster(id).stream().filter(r->"ACTIVE".equals(r.get("status"))).toList(); long active=rows.size();
+    List<Map<String,Object>> roster=db.roster(id);
+    List<Map<String,Object>> rows=roster.stream().filter(r->"ACTIVE".equals(r.get("status"))).toList(); long active=rows.size();
     boolean automatic=(!Boolean.TRUE.equals(a.get("checkin_required")) && !Integer.valueOf(1).equals(a.get("checkin_required"))) && !LocalDateTime.now().isBefore(time(a.get("end_at")));
     long signed=automatic?active:rows.stream().filter(r->r.get("signed_at")!=null).count();
-    return Map.of("registered",active,"signed",signed,"absent",active-signed,"rate",active==0?0.0:100.0*signed/active,"roster",rows);
+    return Map.of("registered",active,"signed",signed,"absent",active-signed,"rate",active==0?0.0:100.0*signed/active,"roster",roster);
   }
   public List<Map<String,Object>> reviews(long id,long user) {
     Map<String,Object> a=required(id); owner(a,user);
