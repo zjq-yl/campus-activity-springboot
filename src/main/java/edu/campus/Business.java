@@ -18,7 +18,7 @@ public class Business {
   private final SecureRandom random = new SecureRandom();
   Business(Store db) { this.db = db; }
   private ResponseStatusException bad(String message) { return new ResponseStatusException(HttpStatus.CONFLICT, message); }
-  private LocalDateTime time(Object value) { return ((Timestamp)value).toLocalDateTime(); }
+  private LocalDateTime time(Object value) { return value instanceof LocalDateTime t ? t : ((Timestamp)value).toLocalDateTime(); }
   private long number(Object value) { return ((Number)value).longValue(); }
   private Map<String,Object> required(long id) { Map<String,Object> a=db.activity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND); return a; }
   private void owner(Map<String,Object> a,long user) { if(number(a.get("owner_id"))!=user) throw new ResponseStatusException(HttpStatus.FORBIDDEN); }

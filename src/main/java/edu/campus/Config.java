@@ -17,6 +17,11 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
+import java.util.List;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 @Configuration @EnableWebMvc @EnableTransactionManagement
 @ComponentScan("edu.campus") @MapperScan("edu.campus")
@@ -37,6 +42,14 @@ public class Config implements WebMvcConfigurer {
   @Bean public InternalResourceViewResolver viewResolver() {
     InternalResourceViewResolver r = new InternalResourceViewResolver();
     r.setPrefix("/WEB-INF/views/"); r.setSuffix(".jsp"); return r;
+  }
+  @Override public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+    for(HttpMessageConverter<?> converter : converters) {
+      if(converter instanceof MappingJackson2HttpMessageConverter json) {
+        json.getObjectMapper().registerModule(new JavaTimeModule());
+        json.getObjectMapper().disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+      }
+    }
   }
   @Override public void addInterceptors(InterceptorRegistry registry) {
     registry.addInterceptor(new HandlerInterceptor() {
