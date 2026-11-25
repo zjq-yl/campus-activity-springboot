@@ -45,7 +45,8 @@ public class Api {
     return Map.of("id",s.getAttribute("userId"),"role",s.getAttribute("role"),"name",s.getAttribute("name"));
   }
   @GetMapping("/me") public Map<String,Object> me(HttpSession s,HttpServletRequest request) { auth(s,null); CsrfToken token=(CsrfToken)request.getAttribute(CsrfToken.class.getName()); return Map.of("id",s.getAttribute("userId"),"role",s.getAttribute("role"),"name",s.getAttribute("name"),"csrf",token.getToken()); }
-  @GetMapping("/activities") public List<Map<String,Object>> activities(@RequestParam(defaultValue="") String q,@RequestParam(defaultValue="") String category,@RequestParam(defaultValue="1") int page) { return db.activities(q,category,20,Math.min(10000,Math.max(0,page-1))*20); }
+  @GetMapping("/activities") public List<Map<String,Object>> activities(@RequestParam(defaultValue="") String q,@RequestParam(defaultValue="") String category,@RequestParam(defaultValue="") String day,@RequestParam(defaultValue="1") int page) { return db.activities(q,category,day,20,Math.min(10000,Math.max(0,page-1))*20); }
+  @GetMapping("/activities/calendar") public List<Map<String,Object>> calendar(@RequestParam String month) { if(!month.matches("\\d{4}-(0[1-9]|1[0-2])")) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"月份无效"); return db.calendar(month); }
   @GetMapping("/activities/categories") public List<String> categories() { return db.categories(); }
   @GetMapping("/activities/{id}") public Map<String,Object> activity(@PathVariable long id) { Map<String,Object> a=db.publishedActivity(id); if(a==null) throw new ResponseStatusException(HttpStatus.NOT_FOUND); return a; }
   @GetMapping("/owner/activities") public List<Map<String,Object>> owned(HttpSession s) { return db.owned(auth(s,"OWNER")); }
