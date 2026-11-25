@@ -26,6 +26,7 @@ public class Seed {
           activity.setString(1,row[0]);activity.setString(2,row[1]);activity.setString(3,row[2]);activity.setString(4,"课程演示活动");activity.setString(5,row[3]);activity.setString(6,row[0]);activity.executeUpdate();
         }
       }
+      DemoActivities.populate(c);
     }
     System.out.println("Demo accounts: admin, owner, student1, student2, student3; password: "+password);
   }
