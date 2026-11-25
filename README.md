@@ -5,14 +5,16 @@
 ## 启动
 
 1. 在 MySQL 8 中执行 [建表脚本](sql/schema.sql)。
-   已使用旧版建表脚本的数据库只执行一次 [积分字段迁移](sql/migrations/001_points.sql)，不要重新执行建表脚本。
+   已使用旧版建表脚本的数据库依次执行一次 [积分字段迁移](sql/migrations/001_points.sql) 和 [学生管理字段迁移](sql/migrations/002_student_management.sql)，不要重新执行建表脚本。
 2. 设置 `DB_URL`、`DB_USER`、`DB_PASSWORD` 环境变量。默认 URL 指向本机 `campus_activity`。
 3. 运行 `mvn exec:java -Dexec.mainClass=edu.campus.seed.Seed`，创建演示账号 `admin`、`owner`、`student1`、`student2`、`student3` 和示例活动；默认密码为 `demo123`，可用 `DEMO_PASSWORD` 改写。重复运行不会重复创建示例活动。
 4. 运行 `mvn package`，再运行 `java -jar target/activity-signin-1.0.0.jar`，打开 `http://localhost:8080/`。
 
 演示顺序：负责人创建草稿并提交 → 管理员通过 → 学生报名 → 活动开始后负责人开启签到 → 学生输入现场签到码 → 负责人查看统计。活动时间需覆盖当前时间才能开启签到。
 
-登录后按角色进入独立页面：学生可在 `/hall` 浏览活动、在 `/student` 查看档案与积分；负责人在 `/owner` 管理活动、结束活动与名单统计；管理员在 `/admin` 审核活动并查看审核历史。
+登录后按角色进入独立页面，均可从左侧导航切换。学生有 `/student` 个人首页、`/hall` 活动大厅、`/student/history` 参与记录、`/student/points` 分类积分；负责人有 `/owner` 我的活动、`/owner/new` 发布活动、`/owner/ended` 结束与统计；管理员有 `/admin` 仪表盘、`/admin/students` 学生管理、`/admin/audits` 活动审核。
+
+管理员可在学生管理页按学号、姓名、专业搜索，新增和编辑学生资料、重置密码、停用账号。停用后账号无法登录，历史报名与签到记录保留。
 
 ## 说明
 
