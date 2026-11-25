@@ -1,0 +1,1 @@
+(async()=>{if(!await init('ADMIN'))return;try{const data=await api('/admin/summary');$('#studentsCount').textContent=data.students;$('#ownersCount').textContent=data.owners;$('#activitiesCount').textContent=data.activities;$('#registrationsCount').textContent=data.registrations;$('#pendingCount').textContent=data.pending}catch(error){message(error.message,'danger')}})();

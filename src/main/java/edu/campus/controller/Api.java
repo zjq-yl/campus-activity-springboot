@@ -2,6 +2,7 @@ package edu.campus.controller;
 
 import edu.campus.mapper.Store;
 import edu.campus.service.Business;
+import edu.campus.service.StudentAdminService;
 
 import java.util.List;
 import java.util.Map;
@@ -21,8 +22,8 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 public class Api {
-  private final Store db; private final Business business; private final AuthenticationManager authenticationManager;
-  public Api(Store db,Business business,AuthenticationManager authenticationManager) { this.db=db; this.business=business; this.authenticationManager=authenticationManager; }
+  private final Store db; private final Business business; private final StudentAdminService students; private final AuthenticationManager authenticationManager;
+  public Api(Store db,Business business,StudentAdminService students,AuthenticationManager authenticationManager) { this.db=db; this.business=business; this.students=students; this.authenticationManager=authenticationManager; }
   private long auth(HttpSession s,String role) {
     Object id=s.getAttribute("userId"); if(id==null) throw new ResponseStatusException(HttpStatus.UNAUTHORIZED,"请先登录");
     if(role!=null && !role.equals(s.getAttribute("role"))) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"权限不足");
@@ -54,6 +55,11 @@ public class Api {
   @GetMapping("/points/categories") public List<String> pointCategories() { return Business.POINT_CATEGORIES; }
   @GetMapping("/admin/activities") public List<Map<String,Object>> pending(HttpSession s) { auth(s,"ADMIN"); return db.pending(); }
   @GetMapping("/admin/reviews") public List<Map<String,Object>> allReviews(HttpSession s) { auth(s,"ADMIN"); return db.allReviews(); }
+  @GetMapping("/admin/summary") public Map<String,Object> adminSummary(HttpSession s) { auth(s,"ADMIN"); return db.adminSummary(); }
+  @GetMapping("/admin/students/data") public List<Map<String,Object>> students(HttpSession s,@RequestParam(defaultValue="") String q) { auth(s,"ADMIN"); return db.students(q); }
+  @PostMapping("/admin/students") public void addStudent(HttpSession s,@RequestParam String account,@RequestParam String password,@RequestParam String name,@RequestParam String studentNo,@RequestParam(defaultValue="") String gender,@RequestParam Integer year,@RequestParam(defaultValue="") String college,@RequestParam(defaultValue="") String major,@RequestParam(defaultValue="") String className) { auth(s,"ADMIN"); students.create(account,password,name,studentNo,gender,year,college,major,className); }
+  @PostMapping("/admin/students/{id}/edit") public void editStudent(@PathVariable long id,HttpSession s,@RequestParam String account,@RequestParam(defaultValue="") String password,@RequestParam String name,@RequestParam String studentNo,@RequestParam(defaultValue="") String gender,@RequestParam Integer year,@RequestParam(defaultValue="") String college,@RequestParam(defaultValue="") String major,@RequestParam(defaultValue="") String className) { auth(s,"ADMIN"); students.update(id,account,password,name,studentNo,gender,year,college,major,className); }
+  @PostMapping("/admin/students/{id}/disable") public void disableStudent(@PathVariable long id,HttpSession s) { auth(s,"ADMIN"); students.disable(id); }
   @PostMapping("/owner/activities") public void create(HttpSession s,@RequestParam String title,@RequestParam String category,@RequestParam(defaultValue="思想成长") String pointCategory,@RequestParam(defaultValue="1") int points,@RequestParam(defaultValue="true") boolean checkinRequired,@RequestParam String location,@RequestParam(defaultValue="") String description,@RequestParam int capacity,@RequestParam String signupDeadline,@RequestParam String startAt,@RequestParam String endAt) {
     long id=auth(s,"OWNER");
     if(title.isBlank() || category.isBlank() || location.isBlank() || capacity<1 || signupDeadline.compareTo(startAt)>=0 || startAt.compareTo(endAt)>=0) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"活动信息或时间无效");

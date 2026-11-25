@@ -16,9 +16,9 @@ public class Seed {
       for(String[] row:new String[][]{{"admin","管理员","ADMIN"},{"owner","活动负责人","OWNER"},{"student1","学生甲","STUDENT"},{"student2","学生乙","STUDENT"},{"student3","学生丙","STUDENT"}}) {
         p.setString(1,row[0]);p.setString(2,hash);p.setString(3,row[1]);p.setString(4,row[2]);p.executeUpdate();
       }
-      try(PreparedStatement profile=c.prepareStatement("UPDATE sys_user SET student_no=?,college=?,major=?,class_name=? WHERE account=?")) {
+      try(PreparedStatement profile=c.prepareStatement("UPDATE sys_user SET student_no=?,gender=?,enrollment_year=?,college=?,major=?,class_name=? WHERE account=?")) {
         for(int i=1;i<=3;i++) {
-          profile.setString(1,"2026000"+i);profile.setString(2,"计算机学院");profile.setString(3,"软件工程");profile.setString(4,"软件工程 1 班");profile.setString(5,"student"+i);profile.executeUpdate();
+          profile.setString(1,"2026000"+i);profile.setString(2,i==2?"女":"男");profile.setInt(3,2026);profile.setString(4,"计算机学院");profile.setString(5,"软件工程");profile.setString(6,"软件工程 1 班");profile.setString(7,"student"+i);profile.executeUpdate();
         }
       }
       for(String[] row:new String[][]{{"校园技术分享会","讲座","教学楼 A101","PUBLISHED"},{"周末志愿服务","志愿服务","校园服务中心","PENDING"}}) {

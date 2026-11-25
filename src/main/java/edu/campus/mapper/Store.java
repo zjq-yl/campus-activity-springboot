@@ -5,8 +5,15 @@ import java.util.Map;
 import org.apache.ibatis.annotations.*;
 
 public interface Store {
-  @Select("SELECT * FROM sys_user WHERE account=#{account}") Map<String,Object> user(String account);
-  @Select("SELECT id,account,display_name,role,student_no,college,major,class_name FROM sys_user WHERE id=#{id}") Map<String,Object> profile(long id);
+  @Select("SELECT * FROM sys_user WHERE account=#{account} AND enabled=1") Map<String,Object> user(String account);
+  @Select("SELECT id,account,display_name,role,student_no,gender,enrollment_year,college,major,class_name FROM sys_user WHERE id=#{id}") Map<String,Object> profile(long id);
+  @Select("SELECT id,account,display_name,student_no,gender,enrollment_year,college,major,class_name FROM sys_user WHERE role='STUDENT' AND enabled=1 AND (#{q}='' OR account LIKE CONCAT('%',#{q},'%') OR display_name LIKE CONCAT('%',#{q},'%') OR student_no LIKE CONCAT('%',#{q},'%') OR major LIKE CONCAT('%',#{q},'%')) ORDER BY id DESC") List<Map<String,Object>> students(String q);
+  @Select("SELECT id FROM sys_user WHERE id=#{id} AND role='STUDENT' AND enabled=1") Long activeStudent(long id);
+  @Insert("INSERT INTO sys_user(account,password_hash,display_name,role,student_no,gender,enrollment_year,college,major,class_name) VALUES(#{account},#{hash},#{name},'STUDENT',#{studentNo},#{gender},#{year},#{college},#{major},#{className})") void addStudent(@Param("account") String account,@Param("hash") String hash,@Param("name") String name,@Param("studentNo") String studentNo,@Param("gender") String gender,@Param("year") Integer year,@Param("college") String college,@Param("major") String major,@Param("className") String className);
+  @Update("UPDATE sys_user SET account=#{account},display_name=#{name},student_no=#{studentNo},gender=#{gender},enrollment_year=#{year},college=#{college},major=#{major},class_name=#{className} WHERE id=#{id} AND role='STUDENT' AND enabled=1") int updateStudent(@Param("id") long id,@Param("account") String account,@Param("name") String name,@Param("studentNo") String studentNo,@Param("gender") String gender,@Param("year") Integer year,@Param("college") String college,@Param("major") String major,@Param("className") String className);
+  @Update("UPDATE sys_user SET password_hash=#{hash} WHERE id=#{id} AND role='STUDENT' AND enabled=1") void resetStudentPassword(@Param("id") long id,@Param("hash") String hash);
+  @Update("UPDATE sys_user SET enabled=0 WHERE id=#{id} AND role='STUDENT'") int disableStudent(long id);
+  @Select("SELECT (SELECT COUNT(*) FROM sys_user WHERE role='STUDENT' AND enabled=1) AS students,(SELECT COUNT(*) FROM sys_user WHERE role='OWNER' AND enabled=1) AS owners,(SELECT COUNT(*) FROM activity) AS activities,(SELECT COUNT(*) FROM activity WHERE status='PENDING') AS pending,(SELECT COUNT(*) FROM registration WHERE status='ACTIVE') AS registrations") Map<String,Object> adminSummary();
   @Select("SELECT * FROM activity WHERE id=#{id}") Map<String,Object> activity(long id);
   @Select("SELECT a.*,u.display_name AS owner_name FROM activity a JOIN sys_user u ON u.id=a.owner_id WHERE a.id=#{id} AND a.status='PUBLISHED'") Map<String,Object> publishedActivity(long id);
   @Select("SELECT * FROM activity WHERE id=#{id} FOR UPDATE") Map<String,Object> lockActivity(long id);
