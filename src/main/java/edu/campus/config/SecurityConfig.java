@@ -29,7 +29,7 @@ public class SecurityConfig {
   @Bean SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http.csrf(csrf -> csrf.ignoringRequestMatchers("/login"));
     http.authorizeHttpRequests(auth -> auth
-      .requestMatchers("/", "/login", "/css/**", "/js/**", "/error").permitAll()
+      .requestMatchers("/", "/login", "/register", "/css/**", "/js/**", "/error").permitAll()
       .requestMatchers(HttpMethod.GET,"/activities/**", "/points/categories").permitAll()
       .requestMatchers(HttpMethod.POST,"/activities/**").hasRole("STUDENT")
       .requestMatchers("/hall", "/student", "/my/**").hasRole("STUDENT")

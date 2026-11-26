@@ -44,6 +44,11 @@ public class Api {
     s.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,context);
     return Map.of("id",s.getAttribute("userId"),"role",s.getAttribute("role"),"name",s.getAttribute("name"));
   }
+  @PostMapping("/register") public Map<String,String> register(@RequestParam String account,@RequestParam String password,@RequestParam String confirmPassword,@RequestParam String name,@RequestParam String studentNo,@RequestParam Integer year,@RequestParam(defaultValue="") String college,@RequestParam(defaultValue="") String major,@RequestParam(defaultValue="") String className) {
+    if(!password.equals(confirmPassword)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"两次输入的密码不一致");
+    students.create(account,password,name,studentNo,"",year,college,major,className);
+    return Map.of("message","注册成功，请登录");
+  }
   @GetMapping("/me") public Map<String,Object> me(HttpSession s,HttpServletRequest request) { auth(s,null); CsrfToken token=(CsrfToken)request.getAttribute(CsrfToken.class.getName()); return Map.of("id",s.getAttribute("userId"),"role",s.getAttribute("role"),"name",s.getAttribute("name"),"csrf",token.getToken()); }
   @GetMapping("/activities") public List<Map<String,Object>> activities(@RequestParam(defaultValue="") String q,@RequestParam(defaultValue="") String category,@RequestParam(defaultValue="") String day,@RequestParam(defaultValue="1") int page) { return db.activities(q,category,day,20,Math.min(10000,Math.max(0,page-1))*20); }
   @GetMapping("/activities/calendar") public List<Map<String,Object>> calendar(@RequestParam String month) { if(!month.matches("\\d{4}-(0[1-9]|1[0-2])")) throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"月份无效"); return db.calendar(month); }
